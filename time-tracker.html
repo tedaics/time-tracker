@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billable Time Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .sync-status {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 10px;
+        }
+
+        .timer-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .timer-display {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+
+        input, textarea {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+            font-family: inherit;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .entries-section {
+            padding: 30px;
+        }
+
+        .entries-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .entries-header h2 {
+            font-size: 24px;
+            color: #212529;
+        }
+
+        .entry-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+
+        .entry-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .entry-customer {
+            font-size: 18px;
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .entry-project {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+
+        .entry-time {
+            text-align: right;
+        }
+
+        .entry-duration {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .entry-dates {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .entry-details {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 8px 15px;
+            font-size: 14px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .entry-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .entry-value {
+            color: #212529;
+        }
+
+        .entry-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            color: #212529;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: #212529;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .timer-display {
+                font-size: 36px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        .config-section {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 30px;
+        }
+
+        .config-section h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .config-help {
+            font-size: 12px;
+            color: #856404;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏱️ Billable Time Tracker</h1>
+            <div class="sync-status" id="syncStatus">Sheet.best sync enabled</div>
+        </div>
+
+
+
+        <div class="timer-section">
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="customer">Customer *</label>
+                    <input type="text" id="customer" placeholder="Customer name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="project">Project *</label>
+                    <input type="text" id="project" placeholder="Project name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ticketNumber">Ticket #</label>
+                    <input type="text" id="ticketNumber" placeholder="Optional">
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" placeholder="What did you work on?"></textarea>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" id="startBtn" onclick="startTimer()">Start Timer</button>
+                <button class="btn-secondary" id="stopBtn" onclick="stopTimer()" disabled>Stop Timer</button>
+                <button class="btn-success" onclick="saveEntry()">Save Entry</button>
+            </div>
+        </div>
+
+        <div class="entries-section">
+            <div class="entries-header">
+                <h2>Time Entries</h2>
+                <div class="button-group">
+                    <button class="btn-success" onclick="exportCSV()">Export CSV</button>
+                    <button class="btn-secondary" onclick="syncData()">Sync Now</button>
+                </div>
+            </div>
+            <div id="entriesList"></div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Entry</h2>
+                <button class="close-modal" onclick="closeEditModal()">&times;</button>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="editCustomer">Customer *</label>
+                    <input type="text" id="editCustomer" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editProject">Project *</label>
+                    <input type="text" id="editProject" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="editTicketNumber">Ticket #</label>
+                    <input type="text" id="editTicketNumber">
+                </div>
+                
+                <div class="form-group">
+                    <label for="editDuration">Duration (minutes)</label>
+                    <input type="number" id="editDuration" min="1" required>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="editNotes">Notes</label>
+                    <textarea id="editNotes"></textarea>
+                </div>
+            </div>
+
+            <div class="button-group" style="margin-top: 20px;">
+                <button class="btn-primary" onclick="saveEdit()">Save Changes</button>
+                <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sheet.best API endpoint (hardcoded)
+        const SHEETBEST_URL = 'https://api.sheetbest.com/sheets/5c49eb49-523a-4517-818e-6ab4ec9577a6';
+
+        let timerInterval = null;
+        let startTime = null;
+        let elapsedSeconds = 0;
+        let entries = [];
+        let editingIndex = null;
+
+        // Load data on startup
+        window.addEventListener('DOMContentLoaded', () => {
+            loadEntries();
+            syncFromSheet();
+            renderEntries();
+        });
+
+        async function syncFromSheet() {
+            try {
+                const response = await fetch(SHEETBEST_URL);
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Convert Sheet.best data to our entry format
+                    if (data && data.length > 0) {
+                        entries = data.map(row => {
+                            // Calculate duration from start/end times if not present
+                            const start = new Date(row['Start Time']);
+                            const end = new Date(row['End Time']);
+                            const durationMs = end - start;
+                            const durationMinutes = Math.ceil(durationMs / 60000);
+                            
+                            return {
+                                id: row.id || Date.now().toString() + Math.random(),
+                                startTime: row['Start Time'],
+                                endTime: row['End Time'],
+                                durationMinutes: durationMinutes,
+                                customer: row['Customer'] || '',
+                                project: row['Project'] || '',
+                                ticketNumber: row['Ticket #'] || '',
+                                notes: row['Notes'] || ''
+                            };
+                        });
+                        
+                        saveEntries();
+                        renderEntries();
+                    }
+                }
+            } catch (error) {
+                console.log('Sync from sheet failed:', error);
+                // Silently fail and use local data
+            }
+        }
+
+        async function syncToSheet() {
+            try {
+                // Step 1: Delete all existing data rows (keep header row)
+                // We'll use a wildcard filter to delete all rows that have ANY customer name
+                // This is easier than trying to delete specific row numbers
+                try {
+                    await fetch(`${SHEETBEST_URL}/Customer/*`, {
+                        method: 'DELETE'
+                    });
+                    // Wait a moment for deletion to complete
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } catch (deleteError) {
+                    console.log('Delete failed (might be empty sheet):', deleteError);
+                    // Continue anyway - sheet might be empty
+                }
+                
+                // Step 2: POST all current entries
+                const sheetData = entries.map(entry => {
+                    const start = new Date(entry.startTime);
+                    const end = new Date(entry.endTime);
+                    const rounded = roundToQuarterHour(entry.durationMinutes);
+                    
+                    const formatISO = (date) => {
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const hours = String(date.getHours()).padStart(2, '0');
+                        const minutes = String(date.getMinutes()).padStart(2, '0');
+                        const seconds = String(date.getSeconds()).padStart(2, '0');
+                        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                    };
+                    
+                    return {
+                        'Start Time': formatISO(start),
+                        'End Time': formatISO(end),
+                        'Actual Duration': formatDuration(entry.durationMinutes),
+                        'Rounded Duration (15min)': formatDuration(rounded),
+                        'Customer': entry.customer,
+                        'Project': entry.project,
+                        'Ticket #': entry.ticketNumber || '',
+                        'Notes': entry.notes || ''
+                    };
+                });
+                
+                const response = await fetch(SHEETBEST_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(sheetData)
+                });
+                
+                if (response.ok) {
+                    alert('✓ Data synced to Google Sheets successfully!');
+                } else {
+                    alert('Sync failed. Check your internet connection.');
+                }
+            } catch (error) {
+                alert(`Sync error: ${error.message}`);
+            }
+        }
+
+        function startTimer() {
+            startTime = new Date();
+            elapsedSeconds = 0;
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            
+            timerInterval = setInterval(() => {
+                elapsedSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+        }
+
+        function updateTimerDisplay() {
+            const hours = Math.floor(elapsedSeconds / 3600);
+            const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+            const seconds = elapsedSeconds % 60;
+            
+            document.getElementById('timerDisplay').textContent = 
+                `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function saveEntry() {
+            const customer = document.getElementById('customer').value.trim();
+            const project = document.getElementById('project').value.trim();
+            const ticketNumber = document.getElementById('ticketNumber').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+            
+            if (!customer || !project) {
+                alert('Customer and Project are required fields.');
+                return;
+            }
+            
+            const endTime = new Date();
+            const durationMinutes = Math.ceil(elapsedSeconds / 60);
+            
+            const entry = {
+                id: Date.now().toString(),
+                startTime: startTime ? startTime.toISOString() : new Date().toISOString(),
+                endTime: endTime.toISOString(),
+                durationMinutes: durationMinutes,
+                customer: customer,
+                project: project,
+                ticketNumber: ticketNumber,
+                notes: notes
+            };
+            
+            entries.unshift(entry);
+            saveEntries();
+            renderEntries();
+            
+            // Reset form
+            document.getElementById('customer').value = '';
+            document.getElementById('project').value = '';
+            document.getElementById('ticketNumber').value = '';
+            document.getElementById('notes').value = '';
+            
+            // Reset timer
+            stopTimer();
+            elapsedSeconds = 0;
+            startTime = null;
+            updateTimerDisplay();
+            
+            // Manual sync only - removed auto-sync
+        }
+
+        function loadEntries() {
+            const saved = localStorage.getItem('timeEntries');
+            if (saved) {
+                entries = JSON.parse(saved);
+            }
+        }
+
+        function saveEntries() {
+            localStorage.setItem('timeEntries', JSON.stringify(entries));
+        }
+
+        function renderEntries() {
+            const container = document.getElementById('entriesList');
+            
+            if (entries.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3>No time entries yet</h3>
+                        <p>Start the timer and log your first billable session!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = entries.map((entry, index) => {
+                const start = new Date(entry.startTime);
+                const end = new Date(entry.endTime);
+                const rounded = roundToQuarterHour(entry.durationMinutes);
+                
+                return `
+                    <div class="entry-card">
+                        <div class="entry-header">
+                            <div>
+                                <div class="entry-customer">${escapeHtml(entry.customer)}</div>
+                                <div class="entry-project">${escapeHtml(entry.project)}</div>
+                            </div>
+                            <div class="entry-time">
+                                <div class="entry-duration">${formatDuration(entry.durationMinutes)}</div>
+                                <div class="entry-dates">${formatTime(start)} - ${formatTime(end)}</div>
+                                <div class="entry-dates" style="color: #667eea; font-weight: 600;">Rounded: ${formatDuration(rounded)}</div>
+                            </div>
+                        </div>
+                        <div class="entry-details">
+                            ${entry.ticketNumber ? `
+                                <span class="entry-label">Ticket #:</span>
+                                <span class="entry-value">${escapeHtml(entry.ticketNumber)}</span>
+                            ` : ''}
+                            ${entry.notes ? `
+                                <span class="entry-label">Notes:</span>
+                                <span class="entry-value">${escapeHtml(entry.notes)}</span>
+                            ` : ''}
+                        </div>
+                        <div class="entry-actions">
+                            <button class="btn-warning" onclick="editEntry(${index})">Edit</button>
+                            <button class="btn-danger" onclick="deleteEntry(${index})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function editEntry(index) {
+            editingIndex = index;
+            const entry = entries[index];
+            
+            document.getElementById('editCustomer').value = entry.customer;
+            document.getElementById('editProject').value = entry.project;
+            document.getElementById('editTicketNumber').value = entry.ticketNumber || '';
+            document.getElementById('editDuration').value = entry.durationMinutes;
+            document.getElementById('editNotes').value = entry.notes || '';
+            
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editingIndex = null;
+        }
+
+        function saveEdit() {
+            if (editingIndex === null) return;
+            
+            const customer = document.getElementById('editCustomer').value.trim();
+            const project = document.getElementById('editProject').value.trim();
+            const ticketNumber = document.getElementById('editTicketNumber').value.trim();
+            const duration = parseInt(document.getElementById('editDuration').value);
+            const notes = document.getElementById('editNotes').value.trim();
+            
+            if (!customer || !project || !duration || duration < 1) {
+                alert('Customer, Project, and valid Duration are required.');
+                return;
+            }
+            
+            entries[editingIndex].customer = customer;
+            entries[editingIndex].project = project;
+            entries[editingIndex].ticketNumber = ticketNumber;
+            entries[editingIndex].durationMinutes = duration;
+            entries[editingIndex].notes = notes;
+            
+            saveEntries();
+            renderEntries();
+            closeEditModal();
+            
+            // Manual sync only - removed auto-sync
+        }
+
+        function deleteEntry(index) {
+            if (confirm('Are you sure you want to delete this entry?')) {
+                entries.splice(index, 1);
+                saveEntries();
+                renderEntries();
+                
+                // Manual sync only - removed auto-sync
+            }
+        }
+
+        function roundToQuarterHour(minutes) {
+            return Math.ceil(minutes / 15) * 15;
+        }
+
+        function formatDuration(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${hours}h ${mins}m`;
+        }
+
+        function formatTime(date) {
+            return date.toLocaleString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function exportCSV() {
+            if (entries.length === 0) {
+                alert('No entries to export!');
+                return;
+            }
+            
+            let csv = 'Start Time,End Time,Actual Duration,Rounded Duration (15min),Customer,Project,Ticket #,Notes\n';
+            
+            entries.forEach(entry => {
+                const start = new Date(entry.startTime);
+                const end = new Date(entry.endTime);
+                const rounded = roundToQuarterHour(entry.durationMinutes);
+                
+                // Format datetime as ISO without the 'T' separator for readability
+                const formatISO = (date) => {
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+                    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+                };
+                
+                csv += [
+                    formatISO(start),
+                    formatISO(end),
+                    formatDuration(entry.durationMinutes),
+                    formatDuration(rounded),
+                    `"${entry.customer.replace(/"/g, '""')}"`,
+                    `"${entry.project.replace(/"/g, '""')}"`,
+                    `"${(entry.ticketNumber || '').replace(/"/g, '""')}"`,
+                    `"${(entry.notes || '').replace(/"/g, '""')}"`
+                ].join(',') + '\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `time-entries-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function syncData() {
+            syncToSheet();
+        }
+
+        // Hide config section by default after first load
+        // (No longer needed since we removed the config section)
+    </script>
+</body>
+</html>
